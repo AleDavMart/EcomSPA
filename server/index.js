@@ -7,12 +7,19 @@ const pool = require("./db"); //using a pool allows to query in postgres
 
 //middleware - aka 'software glue'
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); //req.body
 
 //*************ROUTES******************
 
 //CREATE A PRODUCT
+app.post("/products", async(req, res) =>{
+    try{
+        console.log(req.body);
+    }catch(err){
+        console.error(err.message); //returns an error
+    }
 
+});
 //GET ALL PRODUCTS
 
 //UPDATE PRODUCTS
