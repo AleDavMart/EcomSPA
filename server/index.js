@@ -14,13 +14,42 @@ app.use(express.json()); //req.body
 //CREATE A PRODUCT
 app.post("/products", async(req, res) =>{
     try{
-        console.log(req.body);
+        const {pname} = req.body; //client side input being stored into req.body
+        const newProductName = await pool.query("INSERT INTO products(pname) VALUES ($1) RETURNING *", [pname]
+        );//
+       
+        res.json(newProductName.rows[0]);// the .rows[0] selects the specific row data input so it can be returned to user. 
+     
+
     }catch(err){
         console.error(err.message); //returns an error
     }
 
 });
 //GET ALL PRODUCTS
+
+app.get("/products", async(req, res) =>{
+    try {
+        const allProducts = await pool.query("SELECT * FROM products");
+        res.json(allProducts.rows);
+    } catch (error) {
+        console.error(err.message);
+    }
+});
+
+//GET A SPECIFIC PRODUCT
+app.get("/products/:id", async(req,res) =>{
+    try {
+        const {id} = req.params; //using the PK id to select a specific product.
+        const product = await pool.query( "SELECT * FROM products WHERE product_id = $1", [id]); //$1 can be anything since it dynamic and we are specifying in []
+
+        res.json(product.rows[0]);// getting only the first row
+
+        
+    } catch (error) {
+        console.error(err.message);
+    }
+})
 
 //UPDATE PRODUCTS
 
