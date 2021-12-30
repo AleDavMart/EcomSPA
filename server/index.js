@@ -15,10 +15,10 @@ app.use(express.json()); //req.body
 app.post("/products", async(req, res) =>{
     try{
         const {pname} = req.body; //client side input being stored into req.body
-        const newProductName = await pool.query("INSERT INTO products(pname) VALUES ($1) RETURNING *", [pname]
+        const newProduct = await pool.query("INSERT INTO products(pname) VALUES ($1) RETURNING *", [pname]
         );//
        
-        res.json(newProductName.rows[0]);// the .rows[0] selects the specific row data input so it can be returned to user. 
+        res.json(newProduct.rows[0]);// the .rows[0] selects the specific row data input so it can be returned to user. 
      
 
     }catch(err){
@@ -49,11 +49,34 @@ app.get("/products/:id", async(req,res) =>{
     } catch (error) {
         console.error(err.message);
     }
-})
+});
 
 //UPDATE PRODUCTS
+app.put("/products/:id", async(req, res) =>{
+    try {
+        const {id} = req.params;
+        const {pname} = req.body; 
 
+        const updateProduct = await pool.query("UPDATE products SET pname = $1 WHERE product_id= $2", [pname,id]);
+        
+        res.json("Product was updated" );
 
+    } catch (error) {
+        console.error(err.message);
+    }
+});
+
+// DELETE A PRODUCT 
+app.delete("/products/:id", async(req, res) => {
+    try {
+        const {id} = req.params;
+        const deleteProduct = await pool.query("DELETE FROM products WHERE product_id = $1", [id]);
+
+        res.json("Product was deleted !!");
+    } catch (error) {
+        console.error(err.message)
+    }
+});
 
 app.listen(PORT, ()=>{
     console.log(`server has started on port:${PORT}`)
