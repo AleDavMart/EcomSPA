@@ -1,6 +1,6 @@
 const express = require ("express");
 const app = express();
-const PORT = 3000;
+const PORT = 8080;
 const cors = require("cors");
 const pool = require("./db"); //using a pool allows to query in postgres
 
