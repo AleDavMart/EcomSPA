@@ -4,7 +4,7 @@ const PORT = 8080;
 const cors = require("cors");
 const pool = require("./db"); //using a pool allows to query in postgres
 const dotenv = require("dotenv");
-// const hbs = require("express-handlebars");
+const hbs = require("express-handlebars");
 const { v4: uuidv4 } = require('uuid');
 const {Client, Config, CheckoutAPI} = require( "@adyen/api-library"); //importing the Adyen API library
 const { default: Checkout } = require("@adyen/api-library/lib/src/services/checkout");
@@ -115,7 +115,48 @@ app.get("/", async(req,res) => {
         console.error(error);
     }
 });
+ 
+//Initiating a payment
+app.post("/api/initiatePayment", async(req, res) => {
+    try {
+        const orderRef = uuid(); //creating unique order ID 
 
+        const response = await checkout.payments({ //hard coding some payment data information -- fix this !!!
+            amount: { currency: "EUR", value: 3456},
+            reference: orderRef,
+            merchantAccount: process.env.MERCHANT_ACCOUNT,
+            channel: "Web",
+            additionalData: {
+                allow3DS2: true
+            },
+            returnUrl: `http:localhost:8080/api/handleShopperRedirect?orderRef=${orderRef}`, //URL shopper will be redirected to after payment is processed
+            browserInfo: req.body.browserInfo,
+            paymentMethod: req.body.paymentMethod
+
+
+
+        })
+
+        let resultCode = response.resultCode; //pulling this info from the request result
+        let action = null; // no additional action are required for some transactions 
+
+        if(response.action){ //if there is additional action required this will handle 
+            action = response.action;
+            paymentDataStore[orderRef] = action.paymentData;
+        }
+
+        res.json({resultCode, action }); //info being sent back to the client
+    } catch (error) {
+        console.error(error);
+    }
+})
+
+//Handle shopper redirect
+app.all('/api/handleShopperRedirect', async(req, res)=>{ 
+    const payload = {};
+    payload["details"] = req.method === "GET" ? req.query : req.body;
+     
+})
 
 app.listen(PORT, ()=>{
     console.log(`server has started on port:${PORT}`)
