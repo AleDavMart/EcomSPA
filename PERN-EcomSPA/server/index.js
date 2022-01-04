@@ -6,6 +6,8 @@ const pool = require("./db"); //using a pool allows to query in postgres
 const dotenv = require("dotenv");
 // const hbs = require("express-handlebars");
 const { v4: uuidv4 } = require('uuid');
+const {Client, Config, CheckoutAPI} = require( "@adyen/api-library"); //importing the Adyen API library
+const { default: Checkout } = require("@adyen/api-library/lib/src/services/checkout");
 
 //middleware - aka 'software glue'
 app.use(cors());
@@ -19,6 +21,11 @@ dotenv.config({
     path: "./.env"
 });
 
+const config = new Config();
+config.apiKey = process.env.API_Key; //adding API Key from .env file to our config file
+const client = new Client({config}); // new client object
+client.setEnvironment("Test"); //setting the environment to TEST 
+const checkout = new CheckoutAPI(client); //instantiating checkout and passing in the client
 
 //*************ROUTES******************
 
@@ -90,6 +97,24 @@ app.delete("/products/:id", async(req, res) => {
 });
 
 //PAYMENT ROUTES (ADYEN)
+
+const paymentDataStore = {} // storing the payment data here until I can connect it to the database !!! 
+
+//Get payment methods available to the Merchant
+app.get("/", async(req,res) => {
+    try {
+        const response = await checkout.paymentMethods({ //making a payment methods call with our two parameters
+            channel: "Web",
+            merchantAccount: process.env.MERCHANT_ACCOUNT //our own merchant account
+        });
+        res.render("payment", {
+            clientKey: process.env.CLIENT_KEY,
+            response: JSON.stringify(response)
+        });
+    } catch (error) {
+        console.error(error);
+    }
+});
 
 
 app.listen(PORT, ()=>{
