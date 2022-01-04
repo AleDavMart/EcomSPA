@@ -3,11 +3,22 @@ const app = express();
 const PORT = 8080;
 const cors = require("cors");
 const pool = require("./db"); //using a pool allows to query in postgres
-
+const dotenv = require("dotenv");
+// const hbs = require("express-handlebars");
+const { v4: uuidv4 } = require('uuid');
 
 //middleware - aka 'software glue'
 app.use(cors());
-app.use(express.json()); //req.body
+app.use(express.json()); //req.body - parsing JSON bodies
+app.use(morgan("dev")); // set up request logging
+app.use(express.urlencoded({extended: true})); //Parse URL-encoded bodies
+// app.use(express.static(path.join(__dirname, "/public"))); - dont need this as I have not created this folder with the info needed. 
+
+//Enables environment variables by parsing the .env file and assigning it to process env
+dotenv.config({
+    path: "./.env"
+});
+
 
 //*************ROUTES******************
 
@@ -77,6 +88,9 @@ app.delete("/products/:id", async(req, res) => {
         console.error(err.message)
     }
 });
+
+//PAYMENT ROUTES (ADYEN)
+
 
 app.listen(PORT, ()=>{
     console.log(`server has started on port:${PORT}`)
